@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import auth, projects, skills, experiences, contact
+from app.routers import auth, home, projects, skills, experiences, contact
 from app.db.database import init_db
 
 app = FastAPI(
@@ -33,6 +33,8 @@ app.include_router(projects.router,    prefix="/api/projects",    tags=["Project
 app.include_router(skills.router,      prefix="/api/skills",      tags=["Skills"])
 app.include_router(experiences.router, prefix="/api/experiences", tags=["Experiences"])
 app.include_router(contact.router,     prefix="/api/contact",     tags=["Contact"])
+app.include_router(home.router,        prefix="/api/home",        tags=["Home"])
+
 
 @app.get("/", tags=["Health"])
 def root():

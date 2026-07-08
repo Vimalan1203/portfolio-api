@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from app.db.database import get_db
-from sqlalchemy import desc
+from datetime import datetime
 from app.models.portfolio_models import Experience
 from app.schemas.schemas import ExperienceCreate, ExperienceOut
 from app.core.security import verify_token
@@ -25,17 +25,25 @@ def _serialize(e: Experience) -> ExperienceOut:
     )
 
 
+def _parse_date(value: str) -> datetime:
+    if not value:
+        return datetime.min
+    try:
+        return datetime.strptime(value.strip(), "%B %Y")
+    except ValueError:
+        return datetime.min
+
 @router.get("/", response_model=List[ExperienceOut])
 def get_experiences(db: Session = Depends(get_db)):
-    experiences = (
-        db.query(Experience)
-        .order_by(
-            desc(Experience.current),
-            desc(Experience.start_date),
-            desc(Experience.end_date),
+    experiences = db.query(Experience).all()
+
+    experiences.sort(
+        key=lambda e: (
+            not e.current,
+            -_parse_date(e.start_date).timestamp(),
         )
-        .all()
     )
+
     return [_serialize(e) for e in experiences]
 
 

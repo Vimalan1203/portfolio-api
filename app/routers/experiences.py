@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from app.db.database import get_db
+from sqlalchemy import desc
 from app.models.portfolio_models import Experience
 from app.schemas.schemas import ExperienceCreate, ExperienceOut
 from app.core.security import verify_token
@@ -26,7 +27,16 @@ def _serialize(e: Experience) -> ExperienceOut:
 
 @router.get("/", response_model=List[ExperienceOut])
 def get_experiences(db: Session = Depends(get_db)):
-    return [_serialize(e) for e in db.query(Experience).all()]
+    experiences = (
+        db.query(Experience)
+        .order_by(
+            desc(Experience.current),
+            desc(Experience.start_date),
+            desc(Experience.end_date),
+        )
+        .all()
+    )
+    return [_serialize(e) for e in experiences]
 
 
 @router.post("/", response_model=ExperienceOut, status_code=status.HTTP_201_CREATED)
